@@ -1,5 +1,5 @@
 {
   "name": "InstaClone",
   "description": "A modern social media platform inspired by Instagram.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera", "microphone"]
 }
