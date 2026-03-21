@@ -1,5 +1,5 @@
 import React, { useState, useEffect, FormEvent, useRef, MouseEvent, ChangeEvent } from 'react';
-import { Plus, X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Plus, X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX, Smile } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store/useStore';
 
@@ -228,11 +228,24 @@ function StoryViewer({ userIds, storiesByUser, initialUserIndex, onClose }: {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [showReactions, setShowReactions] = useState(false);
+  const [activeReactions, setActiveReactions] = useState<{ id: number, emoji: string }[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const currentUser = userIds[currentUserIndex];
   const userStories = storiesByUser[currentUser];
   const currentStory = userStories[currentStoryIndex];
+
+  const REACTION_EMOJIS = ['❤️', '🔥', '🙌', '👏', '😢', '😍', '😮', '😂'];
+
+  const handleReaction = (emoji: string) => {
+    const id = Date.now();
+    setActiveReactions(prev => [...prev, { id, emoji }]);
+    // Remove reaction after animation
+    setTimeout(() => {
+      setActiveReactions(prev => prev.filter(r => r.id !== id));
+    }, 2000);
+  };
 
   const nextStory = () => {
     if (currentStoryIndex < userStories.length - 1) {
@@ -372,6 +385,24 @@ function StoryViewer({ userIds, storiesByUser, initialUserIndex, onClose }: {
           )}
         </div>
 
+        {/* Floating Reactions */}
+        <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
+          <AnimatePresence>
+            {activeReactions.map((reaction) => (
+              <motion.div
+                key={reaction.id}
+                initial={{ opacity: 0, y: 100, x: Math.random() * 100 - 50 }}
+                animate={{ opacity: 1, y: -500, x: Math.random() * 200 - 100 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2, ease: "easeOut" }}
+                className="absolute bottom-20 left-1/2 text-4xl"
+              >
+                {reaction.emoji}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
         {/* Play/Pause Indicator */}
         <AnimatePresence>
           {!isPlaying && (
@@ -388,8 +419,50 @@ function StoryViewer({ userIds, storiesByUser, initialUserIndex, onClose }: {
           )}
         </AnimatePresence>
 
+        {/* Bottom Controls (Reaction & Input) */}
+        <div className="absolute bottom-6 left-4 right-4 z-50 flex items-center gap-3">
+          <div className="flex-1 relative">
+            <input 
+              type="text"
+              placeholder="Send message..."
+              className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-5 py-3 text-sm text-white placeholder:text-white/60 outline-none focus:bg-white/20 transition-all"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="relative">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowReactions(!showReactions); }}
+              className="p-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/20 transition-all"
+            >
+              <Smile className="w-6 h-6" />
+            </button>
+            
+            <AnimatePresence>
+              {showReactions && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                  animate={{ opacity: 1, y: -10, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                  className="absolute bottom-full right-0 mb-4 p-2 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl flex gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {REACTION_EMOJIS.map(emoji => (
+                    <button 
+                      key={emoji}
+                      onClick={() => { handleReaction(emoji); setShowReactions(false); }}
+                      className="text-2xl hover:scale-125 transition-transform active:scale-90 p-1"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
         {/* Seek Bar (Visible on Hover/Touch) */}
-        <div className="absolute bottom-4 left-4 right-4 z-30 opacity-0 hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-20 left-4 right-4 z-30 opacity-0 hover:opacity-100 transition-opacity">
           <input 
             type="range" 
             min="0" 

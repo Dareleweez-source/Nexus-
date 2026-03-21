@@ -1,7 +1,8 @@
 import { Heart, MessageCircle, Send, Bookmark, Smile } from 'lucide-react';
 import { useState, FormEvent, memo } from 'react';
 import { useStore, Comment } from '../store/useStore';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import CommentsSheet from './CommentsSheet';
 
 interface PostProps {
   id: string;
@@ -24,20 +25,15 @@ const Post = memo(function Post(props: PostProps) {
   const isSaved = useStore((state) => state.savedPosts.includes(props.id));
   const currentUserId = 'test-user-id';
 
-  const handleAddComment = (e: FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-
+  const handleAddComment = (text: string) => {
     const newComment: Comment = {
       id: Date.now().toString(),
       authorUid: currentUserId,
-      text: commentText.trim(),
+      text: text.trim(),
       createdAt: new Date(),
     };
 
     addComment(props.id, newComment);
-    setCommentText('');
-    setShowComments(true);
   };
 
   return (
@@ -101,7 +97,7 @@ const Post = memo(function Post(props: PostProps) {
               <Heart className={`w-7 h-7 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} />
             </button>
             <button 
-              onClick={() => setShowComments(!showComments)}
+              onClick={() => setShowComments(true)}
               className="hover:opacity-60 transition-opacity"
             >
               <MessageCircle className="w-7 h-7 text-gray-700" />
@@ -144,51 +140,28 @@ const Post = memo(function Post(props: PostProps) {
             </div>
           )}
 
-          {/* Comments Section */}
+          {/* View Comments Button */}
           {props.comments && props.comments.length > 0 && (
-            <div className="pt-2 space-y-2">
+            <div className="pt-2">
               <button 
-                onClick={() => setShowComments(!showComments)}
+                onClick={() => setShowComments(true)}
                 className="text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors"
               >
-                {showComments ? 'Hide comments' : `View all ${props.comments.length} comments`}
+                View all {props.comments.length} comments
               </button>
-              
-              {showComments && (
-                <div className="space-y-2 pt-2">
-                  {props.comments.map((comment) => (
-                    <p key={comment.id} className="text-sm">
-                      <span className="font-bold mr-2">{comment.authorUid}</span>
-                      <span className="text-gray-600">{comment.text}</span>
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
-          )}
-
-          {/* Add Comment Input */}
-          {showComments && (
-            <form onSubmit={handleAddComment} className="pt-4 border-t border-gray-50 flex items-center gap-3">
-              <Smile className="w-5 h-5 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Add a comment..." 
-                className="flex-1 text-sm outline-none bg-transparent placeholder:text-gray-300"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-              />
-              <button 
-                type="submit"
-                disabled={!commentText.trim()}
-                className="text-indigo-600 text-sm font-bold disabled:opacity-30 transition-opacity"
-              >
-                Post
-              </button>
-            </form>
           )}
         </div>
       </div>
+
+      {/* Comments Sheet */}
+      <CommentsSheet 
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+        comments={props.comments || []}
+        onAddComment={handleAddComment}
+        username={props.username}
+      />
     </div>
   );
 });
