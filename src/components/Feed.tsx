@@ -69,7 +69,7 @@ export default function Feed() {
               repostedFrom={post.repostedFrom}
             />
             {index === 0 && (
-              <div className="mt-0 pt-4">
+              <div className="my-12">
                 <ProfileSuggestions />
               </div>
             )}
