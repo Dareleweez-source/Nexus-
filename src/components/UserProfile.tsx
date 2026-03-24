@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import Post from './Post';
-import ProfileSuggestions from './ProfileSuggestions';
 import { MessageSquare, UserPlus, UserCheck, Lock, Settings, Check, X, Clock, Grid, Film, Tag, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -180,8 +179,6 @@ export default function UserProfile() {
           </div>
         )}
       </div>
-
-      <ProfileSuggestions />
 
       {/* Tab Navigation */}
       <div className="border-t border-gray-100 mt-8">
