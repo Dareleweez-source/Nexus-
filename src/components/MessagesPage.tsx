@@ -7,7 +7,7 @@ export default function MessagesPage() {
   const currentUserId = 'test-user-id';
 
   return (
-    <div className="max-w-2xl mx-auto pt-8 pb-20 px-4 sm:pt-12 sm:pl-72">
+    <div className="max-w-2xl mx-auto pt-8 pb-20 px-4 sm:pt-12 sm:pl-72 transition-colors duration-300">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-3xl font-black tracking-tight">Messages</h2>
         <button className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors">

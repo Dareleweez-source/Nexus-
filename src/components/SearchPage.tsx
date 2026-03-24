@@ -1,21 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, ChangeEvent } from 'react';
 import { useStore } from '../store/useStore';
 import { Search, ShoppingBag, User, Image as ImageIcon, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ProfileSuggestions from './ProfileSuggestions';
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
   const posts = useStore((state) => state.posts);
   const stores = useStore((state) => state.stores);
   const products = useStore((state) => state.products);
 
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) {
+      setQuery(q);
+    }
+  }, [searchParams]);
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setQuery(val);
+    setSearchParams(val ? { q: val } : {});
+  };
+
   const results = useMemo(() => {
     if (!query.trim()) return { posts: [], stores: [], products: [] };
-    const q = query.toLowerCase();
+    const q = query.toLowerCase().replace(/^#/, ''); // Remove leading # if present
 
     return {
-      posts: posts.filter(p => p.caption.toLowerCase().includes(q) || p.authorUid.toLowerCase().includes(q)),
+      posts: posts.filter(p => 
+        p.caption.toLowerCase().includes(q) || 
+        p.authorUid.toLowerCase().includes(q) ||
+        (p.hashtags && p.hashtags.some(tag => tag.toLowerCase().includes(q)))
+      ),
       stores: stores.filter(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)),
       products: products.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
     };
@@ -24,7 +43,7 @@ export default function SearchPage() {
   const hasResults = results.posts.length > 0 || results.stores.length > 0 || results.products.length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <div className="mb-8">
         <h2 className="text-3xl font-extrabold tracking-tight mb-6">Search</h2>
         <div className="relative">
@@ -35,9 +54,17 @@ export default function SearchPage() {
             className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all shadow-sm text-lg"
             value={query}
             autoFocus
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
+        {query.startsWith('#') && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Filtering by hashtag:</span>
+            <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black tracking-tight border border-indigo-100">
+              {query}
+            </span>
+          </div>
+        )}
       </div>
 
       {!query.trim() ? (
@@ -50,8 +77,12 @@ export default function SearchPage() {
         </div>
       ) : !hasResults ? (
         <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-gray-500 font-medium">No results found for "{query}"</p>
-          <p className="text-gray-400 text-sm mt-2">Try different keywords or check your spelling</p>
+          <p className="text-gray-500 font-medium">No {query.startsWith('#') ? 'posts' : 'results'} found for "{query}"</p>
+          <p className="text-gray-400 text-sm mt-2">
+            {query.startsWith('#') 
+              ? 'Try searching for a different hashtag or keyword' 
+              : 'Try different keywords or check your spelling'}
+          </p>
         </div>
       ) : (
         <div className="space-y-12">
@@ -115,14 +146,14 @@ export default function SearchPage() {
             <div>
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4" />
-                Posts ({results.posts.length})
+                {query.startsWith('#') ? 'Hashtag Results' : 'Posts'} ({results.posts.length})
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {results.posts.map(post => (
                   <Link 
                     key={post.id} 
                     to={`/profile/${post.authorUid}`}
-                    className="aspect-square relative group overflow-hidden rounded-lg"
+                    className="aspect-square relative group overflow-hidden rounded-lg bg-gray-100"
                   >
                     <img src={post.imageUrl} alt={post.caption} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">

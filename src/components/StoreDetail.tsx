@@ -80,7 +80,7 @@ export default function StoreDetail() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-6xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <div className="mb-8">
         <Link to="/shop" className="text-gray-500 hover:text-indigo-600 flex items-center gap-2 mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -97,7 +97,7 @@ export default function StoreDetail() {
               />
             </div>
             <div>
-              <h2 className="text-4xl font-extrabold tracking-tight mb-2">{store.name}</h2>
+              <h2 className="text-4xl font-extrabold tracking-tight mb-2 text-gray-900">{store.name}</h2>
               <p className="text-gray-600 max-w-lg">{store.description}</p>
               <div className="mt-2 text-xs font-bold text-indigo-600 uppercase tracking-widest">
                 Owned by @{store.ownerUid}

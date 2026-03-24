@@ -20,7 +20,7 @@ export default function ProfileSuggestions() {
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 my-8 overflow-hidden">
+    <div className="bg-white rounded-2xl p-6 my-8 overflow-hidden transition-colors duration-300">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Suggested for you</h3>
         <Link to="/search" className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest">See All</Link>
@@ -28,7 +28,7 @@ export default function ProfileSuggestions() {
       
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
         {suggestions.map((user) => (
-          <div key={user.id} className="min-w-[180px] bg-gray-50 rounded-2xl p-4 flex flex-col items-center text-center relative group border border-transparent hover:border-gray-200 transition-all">
+          <div key={user.id} className="min-w-[180px] bg-gray-50 rounded-2xl p-4 flex flex-col items-center text-center relative group transition-all">
             <button 
               onClick={() => removeSuggestion(user.id)}
               className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"

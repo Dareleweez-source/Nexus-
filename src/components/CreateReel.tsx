@@ -1,4 +1,4 @@
-import { Camera, X, Sparkles, Wand2, Circle, StopCircle, Check, Trash2, Smile, Film } from 'lucide-react';
+import { Camera, X, Sparkles, Wand2, Circle, StopCircle, Check, Trash2, Smile, Film, CloudRain, Heart, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,10 @@ const FILTERS = [
   { name: 'Warm', filter: 'brightness(1.1) sepia(0.3) saturate(1.2)' },
   { name: 'Cool', filter: 'brightness(0.9) hue-rotate(180deg) saturate(1.1)' },
   { name: 'Vibrant', filter: 'saturate(2) contrast(1.1)' },
+  { name: 'Vintage', filter: 'sepia(0.6) contrast(1.1) brightness(0.9)' },
+  { name: 'Noir', filter: 'grayscale(1) contrast(1.4)' },
+  { name: 'Cyber', filter: 'hue-rotate(280deg) saturate(1.5) contrast(1.2)' },
+  { name: 'Retro', filter: 'contrast(1.2) saturate(0.8) sepia(0.2) hue-rotate(-10deg)' },
 ];
 
 const AR_EFFECTS = [
@@ -20,6 +24,9 @@ const AR_EFFECTS = [
   { id: 'vignette', name: 'Vignette', icon: <Circle className="w-5 h-5" /> },
   { id: 'neon', name: 'Neon Glow', icon: <Wand2 className="w-5 h-5" /> },
   { id: 'emoji', name: 'Emoji', icon: <Smile className="w-5 h-5" /> },
+  { id: 'rain', name: 'Rain', icon: <CloudRain className="w-5 h-5" /> },
+  { id: 'hearts', name: 'Hearts', icon: <Heart className="w-5 h-5" /> },
+  { id: 'lightning', name: 'Storm', icon: <Zap className="w-5 h-5" /> },
 ];
 
 export default function CreateReel() {
@@ -36,9 +43,15 @@ export default function CreateReel() {
   const [selectedEffect, setSelectedEffect] = useState(AR_EFFECTS[0]);
   const [showFilters, setShowFilters] = useState(false);
   const [showEffects, setShowEffects] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success'>('idle');
 
   // AR Effect Animation State
   const sparklesRef = useRef<{ x: number; y: number; size: number; opacity: number }[]>([]);
+  const rainRef = useRef<{ x: number; y: number; speed: number; length: number }[]>([]);
+  const heartsRef = useRef<{ x: number; y: number; size: number; speed: number; opacity: number }[]>([]);
+  const lightningRef = useRef<{ opacity: number; x: number; width: number } | null>(null);
 
   const startCamera = async () => {
     try {
@@ -102,6 +115,69 @@ export default function CreateReel() {
         s.opacity -= 0.02;
       });
       ctx.globalAlpha = 1;
+    } else if (selectedEffect.id === 'rain') {
+      if (Math.random() > 0.5) {
+        rainRef.current.push({
+          x: Math.random() * canvas.width,
+          y: -20,
+          speed: Math.random() * 15 + 10,
+          length: Math.random() * 20 + 10
+        });
+      }
+      rainRef.current = rainRef.current.filter(r => r.y < canvas.height);
+      ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
+      ctx.lineWidth = 2;
+      rainRef.current.forEach(r => {
+        ctx.beginPath();
+        ctx.moveTo(r.x, r.y);
+        ctx.lineTo(r.x, r.y + r.length);
+        ctx.stroke();
+        r.y += r.speed;
+      });
+    } else if (selectedEffect.id === 'hearts') {
+      if (Math.random() > 0.9) {
+        heartsRef.current.push({
+          x: Math.random() * canvas.width,
+          y: canvas.height + 20,
+          size: Math.random() * 20 + 10,
+          speed: Math.random() * 2 + 1,
+          opacity: 1
+        });
+      }
+      heartsRef.current = heartsRef.current.filter(h => h.y > -20);
+      heartsRef.current.forEach(h => {
+        ctx.globalAlpha = h.opacity;
+        ctx.font = `${h.size}px Arial`;
+        ctx.fillText('❤️', h.x, h.y);
+        h.y -= h.speed;
+        h.x += Math.sin(h.y / 30) * 2;
+      });
+      ctx.globalAlpha = 1;
+    } else if (selectedEffect.id === 'lightning') {
+      if (!lightningRef.current && Math.random() > 0.98) {
+        lightningRef.current = {
+          opacity: 1,
+          x: Math.random() * canvas.width,
+          width: Math.random() * 50 + 20
+        };
+      }
+      if (lightningRef.current) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${lightningRef.current.opacity})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = lightningRef.current.width;
+        ctx.beginPath();
+        ctx.moveTo(lightningRef.current.x, 0);
+        ctx.lineTo(lightningRef.current.x + (Math.random() - 0.5) * 100, canvas.height / 2);
+        ctx.lineTo(lightningRef.current.x + (Math.random() - 0.5) * 100, canvas.height);
+        ctx.stroke();
+        
+        lightningRef.current.opacity -= 0.1;
+        if (lightningRef.current.opacity <= 0) {
+          lightningRef.current = null;
+        }
+      }
     } else if (selectedEffect.id === 'vignette') {
       const gradient = ctx.createRadialGradient(
         canvas.width / 2, canvas.height / 2, canvas.width / 4,
@@ -168,9 +244,23 @@ export default function CreateReel() {
   };
 
   const handleUpload = () => {
-    // In a real app, we would upload the blob to a server
-    alert("Reel uploaded successfully! (Simulated)");
-    navigate('/reels');
+    setIsUploading(true);
+    setUploadStatus('uploading');
+    setUploadProgress(0);
+
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setUploadStatus('success');
+          setTimeout(() => {
+            navigate('/reels');
+          }, 1500);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
   };
 
   const handleGalleryUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -265,20 +355,65 @@ export default function CreateReel() {
               )}
             </button>
           ) : (
-            <div className="flex gap-6">
-              <button 
-                onClick={handleDiscard}
-                className="p-4 bg-white/10 rounded-full backdrop-blur-md text-white hover:bg-white/20 transition-all"
-              >
-                <Trash2 className="w-7 h-7" />
-              </button>
-              <button 
-                onClick={handleUpload}
-                className="px-8 py-4 bg-white rounded-full text-black font-bold flex items-center gap-2 hover:bg-gray-100 transition-all"
-              >
-                <Check className="w-6 h-6" />
-                Share Reel
-              </button>
+            <div className="w-full px-6 max-w-md mx-auto">
+              <AnimatePresence mode="wait">
+                {uploadStatus === 'idle' ? (
+                  <motion.div 
+                    key="idle"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    className="flex gap-4 w-full"
+                  >
+                    <button 
+                      onClick={handleDiscard}
+                      className="flex-1 p-4 bg-white/10 rounded-2xl backdrop-blur-md text-white hover:bg-white/20 transition-all flex items-center justify-center gap-2 font-bold border border-white/10"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Discard
+                    </button>
+                    <button 
+                      onClick={handleUpload}
+                      className="flex-[2] p-4 bg-white rounded-2xl text-black font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-all shadow-xl"
+                    >
+                      <Check className="w-5 h-5" />
+                      Share Reel
+                    </button>
+                  </motion.div>
+                ) : uploadStatus === 'uploading' ? (
+                  <motion.div 
+                    key="uploading"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="w-full bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-white/10"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-white font-bold text-sm uppercase tracking-widest">Uploading Reel...</span>
+                      <span className="text-white font-mono text-sm">{uploadProgress}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-indigo-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-white/40 text-[10px] mt-4 text-center uppercase tracking-tighter">Please don't close the app</p>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="success"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-full bg-emerald-500 rounded-3xl p-6 flex flex-col items-center gap-3 shadow-2xl shadow-emerald-500/20"
+                  >
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                      <Check className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <span className="text-white font-bold text-lg">Shared Successfully!</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>

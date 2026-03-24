@@ -1,7 +1,7 @@
-import { Play, Pause, Heart, MessageCircle, Share2, Music, Volume2, VolumeX, Plus } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Play, Pause, Heart, MessageCircle, Share2, Music, Volume2, VolumeX, Plus, X, Disc } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import React, { useState, useRef, useEffect, ChangeEvent, MouseEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MOCK_REELS = [
   {
@@ -30,19 +30,26 @@ interface ReelItemProps {
 
 const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [showPlayIndicator, setShowPlayIndicator] = useState(false);
+  const [showMusicDetail, setShowMusicDetail] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        setIsPlaying(false);
       } else {
         videoRef.current.play();
+        setIsPlaying(true);
+        // Flash play icon
+        setShowPlayIndicator(true);
+        setTimeout(() => setShowPlayIndicator(false), 500);
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -75,6 +82,11 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
     }
   };
 
+  const handleMusicClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    setShowMusicDetail(true);
+  };
+
   return (
     <div className="h-screen w-full snap-start relative flex items-center justify-center bg-gray-900 group/reel">
       <video 
@@ -102,10 +114,13 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
               <button className="px-3 py-1 border border-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Follow</button>
             </div>
             <p className="text-sm line-clamp-2">{reel.caption}</p>
-            <div className="flex items-center gap-2 text-xs opacity-80">
+            <button 
+              onClick={handleMusicClick}
+              className="flex items-center gap-2 text-xs opacity-80 hover:opacity-100 transition-opacity"
+            >
               <Music className="w-3 h-3 animate-pulse" />
               <span className="truncate">{reel.music}</span>
-            </div>
+            </button>
           </div>
           
           {/* Actions */}
@@ -130,9 +145,12 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                 <Share2 className="w-7 h-7" />
               </div>
             </button>
-            <div className="w-8 h-8 rounded-lg border-2 border-white/50 overflow-hidden animate-spin-slow">
+            <button 
+              onClick={handleMusicClick}
+              className="w-8 h-8 rounded-lg border-2 border-white/50 overflow-hidden animate-spin-slow hover:scale-110 transition-transform"
+            >
               <img src={`https://picsum.photos/seed/${reel.music}/100/100`} alt="Music" className="w-full h-full object-cover" />
-            </div>
+            </button>
           </div>
         </div>
 
@@ -149,16 +167,77 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
         </div>
       </div>
       
+      {/* Music Detail Modal */}
+      <AnimatePresence>
+        {showMusicDetail && (
+          <motion.div 
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="absolute inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMusicDetail(false)} />
+            <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-8 overflow-hidden">
+              <button 
+                onClick={() => setShowMusicDetail(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+
+              <div className="flex flex-col items-center text-center gap-6">
+                <div className="w-32 h-32 rounded-3xl shadow-2xl overflow-hidden relative group">
+                  <img src={`https://picsum.photos/seed/${reel.music}/300/300`} alt={reel.music} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <Disc className="w-12 h-12 text-white animate-spin-slow" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black tracking-tight text-gray-900">{reel.music}</h3>
+                  <p className="text-gray-500 font-medium">Used in 1.2M Nexus Reels</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 w-full">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="aspect-[9/16] bg-gray-100 rounded-xl overflow-hidden relative">
+                      <img src={`https://picsum.photos/seed/reel-${i}/200/350`} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1 text-[10px] text-white font-bold">
+                        <Play className="w-2 h-2 fill-white" />
+                        <span>{Math.floor(Math.random() * 100)}K</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button 
+                  onClick={() => navigate('/reels/create')}
+                  className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2"
+                >
+                  <Music className="w-5 h-5" />
+                  Use this Audio
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Play/Pause Indicator */}
-      <motion.div 
-        initial={false}
-        animate={{ opacity: isPlaying ? 0 : 1, scale: isPlaying ? 0.8 : 1 }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-      >
-        <div className="p-6 bg-black/40 rounded-full backdrop-blur-sm">
-          <Pause className="w-12 h-12 text-white fill-white" />
-        </div>
-      </motion.div>
+      <AnimatePresence>
+        {(!isPlaying || showPlayIndicator) && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.5 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
+          >
+            <div className="p-8 bg-black/40 rounded-full backdrop-blur-md border border-white/20 shadow-2xl">
+              <Play className="w-16 h-16 text-white fill-white" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

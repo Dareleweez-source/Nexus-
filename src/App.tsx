@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useStore } from './store/useStore';
 import Navbar from './components/Navbar';
 import Feed from './components/Feed';
 import UserProfile from './components/UserProfile';
@@ -16,7 +18,7 @@ import CreateReel from './components/CreateReel';
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white text-gray-900 transition-colors duration-300">
         <Navbar />
         <Routes>
           <Route path="/" element={<Feed />} />

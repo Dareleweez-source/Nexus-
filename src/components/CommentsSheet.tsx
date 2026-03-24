@@ -40,7 +40,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, onAddComment,
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[2.5rem] h-[85vh] flex flex-col overflow-hidden shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[2.5rem] h-[85vh] flex flex-col overflow-hidden shadow-2xl border-t"
           >
             {/* Handle */}
             <div className="w-full flex justify-center pt-3 pb-1">

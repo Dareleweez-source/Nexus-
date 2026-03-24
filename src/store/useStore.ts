@@ -16,6 +16,7 @@ export interface PostData {
   hashtags: string[];
   createdAt: Date;
   comments: Comment[];
+  repostedFrom?: PostData;
 }
 
 export interface Message {
@@ -38,6 +39,7 @@ export interface Story {
   mediaUrl: string;
   type: 'image' | 'video';
   createdAt: Date;
+  music?: string;
 }
 
 export interface Product {
@@ -70,6 +72,8 @@ interface AppState {
   userSettings: Record<string, { isPrivate: boolean }>;
   userStats: Record<string, { followers: number; following: number }>;
   savedPosts: string[];
+  refreshKey: number;
+  triggerRefresh: () => void;
   setPosts: (posts: PostData[]) => void;
   addPost: (post: PostData) => void;
   addStore: (store: Store) => void;
@@ -85,6 +89,7 @@ interface AppState {
   approveFollow: (requesterUid: string) => void;
   rejectFollow: (requesterUid: string) => void;
   toggleSavePost: (postId: string) => void;
+  repostPost: (postId: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -320,6 +325,8 @@ export const useStore = create<AppState>((set) => ({
     'test-user-id': { followers: 150, following: 200 },
   },
   savedPosts: [],
+  refreshKey: 0,
+  triggerRefresh: () => set((state) => ({ refreshKey: state.refreshKey + 1 })),
   setPosts: (posts) => set({ posts }),
   addPost: (post) => set((state) => ({ posts: [post, ...state.posts] })),
   addStore: (store) => set((state) => ({ stores: [...state.stores, store] })),
@@ -393,9 +400,27 @@ export const useStore = create<AppState>((set) => ({
   rejectFollow: (requesterUid) => set((state) => ({
     incomingRequests: state.incomingRequests.filter(id => id !== requesterUid)
   })),
-  toggleSavePost: (postId) => set((state) => ({
+  toggleSavePost: (postId: string) => set((state) => ({
     savedPosts: state.savedPosts.includes(postId)
       ? state.savedPosts.filter(id => id !== postId)
       : [...state.savedPosts, postId]
   })),
+  repostPost: (postId) => set((state) => {
+    const originalPost = state.posts.find(p => p.id === postId);
+    if (!originalPost) return state;
+
+    const repost: PostData = {
+      id: `rp${Date.now()}`,
+      authorUid: 'test-user-id',
+      mediaUrl: originalPost.mediaUrl,
+      type: originalPost.type,
+      caption: originalPost.caption,
+      hashtags: originalPost.hashtags,
+      createdAt: new Date(),
+      comments: [],
+      repostedFrom: originalPost,
+    };
+
+    return { posts: [repost, ...state.posts] };
+  }),
 }));

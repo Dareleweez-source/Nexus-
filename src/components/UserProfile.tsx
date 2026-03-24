@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import Post from './Post';
 import ProfileSuggestions from './ProfileSuggestions';
-import { MessageSquare, UserPlus, UserCheck, Lock, Settings, Check, X, Clock } from 'lucide-react';
+import { MessageSquare, UserPlus, UserCheck, Lock, Settings, Check, X, Clock, Grid, Film, Tag, Play } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -24,6 +25,7 @@ export default function UserProfile() {
   
   const [user, setUser] = useState<{ displayName: string; photoURL?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'posts' | 'reels' | 'tagged'>('posts');
 
   const currentUserId = 'test-user-id';
   const isFollowing = userId ? following.includes(userId) : false;
@@ -33,6 +35,12 @@ export default function UserProfile() {
   
   const canSeeContent = userId === currentUserId || !settings.isPrivate || isFollowing;
   const userPosts = allPosts.filter(p => p.authorUid === userId || (userId === 'test-user-id' && p.authorUid === 'test-user-id'));
+  
+  const posts = userPosts.filter(p => p.type === 'image');
+  const reels = userPosts.filter(p => p.type === 'video');
+  const tagged = []; // Mock tagged content
+
+  const activeContent = activeTab === 'posts' ? userPosts : activeTab === 'reels' ? reels : tagged;
 
   const handleMessage = () => {
     if (!userId || userId === currentUserId) return;
@@ -80,7 +88,7 @@ export default function UserProfile() {
   if (!user) return <div className="pt-24 sm:pt-24 sm:pl-72 text-center text-gray-500 font-medium">User not found.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 mb-8">
         <div className="flex flex-col sm:flex-row items-center gap-8">
           <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-1">
@@ -175,24 +183,89 @@ export default function UserProfile() {
 
       <ProfileSuggestions />
 
-      <div className="space-y-8">
+      {/* Tab Navigation */}
+      <div className="border-t border-gray-100 mt-8">
+        <div className="flex justify-center gap-12">
+          <button 
+            onClick={() => setActiveTab('posts')}
+            className={`flex items-center gap-2 py-4 border-t-2 transition-all duration-300 ${
+              activeTab === 'posts' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Grid className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-widest">Posts</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('reels')}
+            className={`flex items-center gap-2 py-4 border-t-2 transition-all duration-300 ${
+              activeTab === 'reels' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Film className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-widest">Reels</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('tagged')}
+            className={`flex items-center gap-2 py-4 border-t-2 transition-all duration-300 ${
+              activeTab === 'tagged' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-widest">Tagged</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4">
         {canSeeContent ? (
-          userPosts.length > 0 ? (
-            userPosts.map((post) => (
-              <Post 
-                key={post.id} 
-                id={post.id}
-                username={post.authorUid}
-                mediaUrl={post.mediaUrl} 
-                type={post.type}
-                caption={post.caption} 
-                hashtags={post.hashtags}
-                comments={post.comments}
-              />
-            ))
+          activeContent.length > 0 ? (
+            <div className="grid grid-cols-3 gap-1 sm:gap-4">
+              {activeContent.map((post) => (
+                <motion.div 
+                  key={post.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="aspect-square relative group cursor-pointer overflow-hidden rounded-lg sm:rounded-2xl bg-gray-100"
+                  onClick={() => navigate(`/post/${post.id}`)}
+                >
+                  {post.type === 'video' ? (
+                    <video 
+                      src={post.mediaUrl} 
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img 
+                      src={post.mediaUrl} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 fill-white" />
+                      <span>{post.comments.length}</span>
+                    </div>
+                    {post.type === 'video' && (
+                      <div className="absolute top-2 right-2">
+                        <Play className="w-4 h-4 fill-white" />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-              <p className="text-gray-400 font-medium">No posts yet.</p>
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                {activeTab === 'posts' ? <Grid className="w-8 h-8 text-gray-300" /> : activeTab === 'reels' ? <Film className="w-8 h-8 text-gray-300" /> : <Tag className="w-8 h-8 text-gray-300" />}
+              </div>
+              <p className="text-gray-400 font-medium">No {activeTab} yet.</p>
             </div>
           )
         ) : (

@@ -29,7 +29,7 @@ export default function Shop() {
   }, [stores, searchQuery]);
 
   return (
-    <div className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h2 className="text-3xl font-extrabold tracking-tight">Marketplace</h2>
         <div className="flex items-center gap-4 flex-1 md:max-w-md">
@@ -45,7 +45,7 @@ export default function Shop() {
           </div>
           <Link 
             to="/shop/create" 
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors whitespace-nowrap shadow-lg shadow-indigo-100"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Create Store</span>

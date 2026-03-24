@@ -24,7 +24,7 @@ export default function CreateStore() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <Link to="/shop" className="text-gray-500 hover:text-indigo-600 flex items-center gap-2 mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to Marketplace
@@ -36,7 +36,7 @@ export default function CreateStore() {
             <ShoppingBag className="w-8 h-8 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">Create Your Store</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">Create Your Store</h2>
             <p className="text-gray-500">Start selling your products to the community.</p>
           </div>
         </div>

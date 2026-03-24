@@ -8,9 +8,17 @@ const POSTS_PER_PAGE = 3;
 
 export default function Feed() {
   const allPosts = useStore((state) => state.posts);
+  const refreshKey = useStore((state) => state.refreshKey);
   const [visiblePostsCount, setVisiblePostsCount] = useState(POSTS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      setVisiblePostsCount(POSTS_PER_PAGE);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [refreshKey]);
 
   const visiblePosts = allPosts.slice(0, visiblePostsCount);
   const hasMore = visiblePostsCount < allPosts.length;
@@ -46,10 +54,10 @@ export default function Feed() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-48 pb-20 px-4 sm:pt-48 sm:pl-72">
-      <div className="space-y-8">
+    <div className="pt-24 pb-20 sm:pl-64 bg-white min-h-screen transition-colors duration-300">
+      <div className="max-w-2xl mx-auto">
         {visiblePosts.map((post, index) => (
-          <div key={post.id}>
+          <div key={post.id} className="py-0 first:pt-0 last:pb-0">
             <Post 
               id={post.id}
               username={post.authorUid}
@@ -58,8 +66,13 @@ export default function Feed() {
               caption={post.caption} 
               hashtags={post.hashtags}
               comments={post.comments}
+              repostedFrom={post.repostedFrom}
             />
-            {index === 0 && <ProfileSuggestions />}
+            {index === 0 && (
+              <div className="mt-0 pt-4">
+                <ProfileSuggestions />
+              </div>
+            )}
           </div>
         ))}
         

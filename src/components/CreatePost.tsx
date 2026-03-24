@@ -69,7 +69,7 @@ export default function CreatePost() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -186,7 +186,7 @@ export default function CreatePost() {
             disabled={!mediaPreview || !caption || isSubmitting}
             className={`w-full py-5 text-white font-black rounded-[2rem] transition-all flex items-center justify-center gap-3 shadow-xl active:scale-[0.98]
               ${!mediaPreview || !caption || isSubmitting 
-                ? 'bg-gray-200 cursor-not-allowed shadow-none' 
+                ? 'bg-gray-200 cursor-not-allowed shadow-none text-gray-400' 
                 : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 hover:shadow-indigo-300'}
             `}
           >

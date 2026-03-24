@@ -47,7 +47,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen pt-0 pb-0 sm:pt-0 sm:pb-0 sm:pl-64 bg-white">
+    <div className="flex flex-col h-screen pt-0 pb-0 sm:pt-0 sm:pb-0 sm:pl-64 bg-white transition-colors duration-300">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shadow-sm z-10 bg-white/80 backdrop-blur-md sticky top-0">
         <div className="flex items-center gap-4">

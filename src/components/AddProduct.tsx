@@ -46,7 +46,7 @@ export default function AddProduct() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72">
+    <div className="max-w-2xl mx-auto pt-24 pb-20 px-4 sm:pt-24 sm:pl-72 transition-colors duration-300">
       <Link to={`/shop/${storeId}`} className="text-gray-500 hover:text-indigo-600 flex items-center gap-2 mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to Store
@@ -58,7 +58,7 @@ export default function AddProduct() {
             <Tag className="w-8 h-8 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">Add New Product</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">Add New Product</h2>
             <p className="text-gray-500">List a new item in your store.</p>
           </div>
         </div>
@@ -137,7 +137,9 @@ export default function AddProduct() {
             type="submit" 
             disabled={isUploading || !formData.imageUrl}
             className={`w-full py-4 text-white font-black rounded-2xl transition-all hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2 ${
-              isUploading || !formData.imageUrl ? 'bg-gray-300 shadow-none cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'
+              isUploading || !formData.imageUrl 
+                ? 'bg-gray-300 shadow-none cursor-not-allowed text-gray-400' 
+                : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'
             }`}
           >
             {isUploading ? (
